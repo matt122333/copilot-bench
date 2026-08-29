@@ -2,25 +2,43 @@
 """Harbor job output -> results.csv (the CSV that ingest.py and report/generate.py consume).
 
 Scans a Harbor run's jobs-dir (`harbor run ... --jobs-dir <dir>`) and, per trial, extracts
-   task_id, model, run_idx, pass, elapsed_s, ttft_s, input_tokens, output_tokens,
-   tokens_per_second
+   task_id, batch, category, format, model, run_idx, pass, elapsed_s, ttft_s,
+   input_tokens, output_tokens, tokens_per_second
 from:
   1) the Copilot CLI trajectory JSONL (`copilot-cli.jsonl`) that Harbor's copilot-cli agent
      writes — schema = stream events with `timestamp`, `model`, and `usage` fields.
   2) the verifier result (pass/fail) from trial/verifier JSON if present.
 
-> Validation note: the copilot-cli.jsonl event schema is stable (timestamp/model/usage), but
-> the *verifier/grade* artifact's exact path/keys vary by Harbor version. Run it once against a
-> real jobs-dir and adjust `GRADE_SOURCES`/`find_grade` if the pass column comes out blank.
+task_id / batch / category / format are resolved from the KNOWN task list in batches/spec.yaml
+(not from the leaf dir name, so trial-dir names don't corrupt the audit grouping).
+
+For multi-pass variance: run with `--run-idx 1`, `--run-idx 2`, ... per pass (and merge the CSVs),
+or repeat a batch twice per model.
 
 Usage:
-  python3 tools/parse_harbor_results.py <jobs-dir> [-o runs/results.csv]
+  python3 tools/parse_harbor_results.py <jobs-dir> -o runs/results.csv [--run-idx N]
 """
 from __future__ import annotations
-import argparse, csv, glob, json, os, statistics
+import argparse, csv, glob, json, os
 
-# try multiple plausible pass/fail artifacts per trial
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SPEC = os.path.join(ROOT, "batches", "spec.yaml")
+
 GRADE_PATTERNS = ["*result.json", "*test.json", "*.results.json", "result*.json"]
+
+
+def load_spec_map():
+    """task_id -> (batch, category, format) built from the governance spec."""
+    import yaml
+    spec = yaml.safe_load(open(SPEC))
+    out = {}
+    cat_by_id = {1: "coding_accuracy", 2: "agentic_terminal", 3: "agentic_terminal",
+                 4: "security", 5: "modernization_refactor"}
+    for b in spec["batches"]:
+        for t in b["tasks"]:
+            out[t["id"]] = ("B" + str(b["id"]), cat_by_id[b["id"]],
+                            "single_shot" if t["id"].startswith(("CSQ-", "python-")) else "agentic_terminal")
+    return out
 
 
 def find_grade_json(trial_dir):
@@ -43,12 +61,11 @@ def parse_grade(path):
         if isinstance(v, bool):
             return v
         if isinstance(v, (int, float)):
-            return v >= 0.5 if key in ("score", "grade") else bool(v)
+            return bool(v) if key not in ("score", "grade", "passed_count") else v >= 0.5
     return None
 
 
 def parse_trajectory(path):
-    """Sum tokens, span timestamps, model name from a copilot-cli.jsonl trajectory."""
     ts, model, tin, tout, first_content = [], None, 0, 0, None
     for line in open(path, encoding="utf-8"):
         line = line.strip()
@@ -66,9 +83,7 @@ def parse_trajectory(path):
         tout += int(usage.get("output_tokens") or usage.get("output") or 0)
         if not model and ev.get("model"):
             model = ev["model"]
-        # first non-system, non-error event with content = first response (approx TTFT)
-        etype = ev.get("type")
-        if (etype in ("message", "assistant", "content", "tool_use")
+        if (ev.get("type") in ("message", "assistant", "content", "tool_use")
                 or ev.get("role") == "assistant"):
             if first_content is None:
                 first_content = t
@@ -86,65 +101,62 @@ def parse_trajectory(path):
     }
 
 
-def walk_jobs_dir(root):
+def resolve_task(dirpath, known):
+    """Find the rightmost path segment that is a known task id; return its (batch,cat,fmt)."""
+    segs = [s for s in dirpath.split(os.sep) if s]
+    for seg in reversed(segs):
+        if seg in known:
+            return seg, known[seg]
+    return "", ("", "", "")
+
+
+def walk_jobs_dir(root, run_idx, known):
     rows = []
-    for dirpath, dirnames, files in os.walk(root):
-        # skip verifier docker mounts/artifacts dirs that aren't trial output
+    for dirpath, _, files in os.walk(root):
         if any(seg in dirpath.split(os.sep) for seg in ("artifacts", ".git", "verifier-copy")):
             continue
-        for f in files:
-            if f == "copilot-cli.jsonl":
-                tp = os.path.join(dirpath, f)
-                traj = parse_trajectory(tp)
-                if traj is None:
-                    continue
-                grade = parse_grade(find_grade_json(dirpath))
-                # task/model best-effort from dir naming
-                parts = [p for p in dirpath.split(os.sep) if p]
-                task_id = next((p for p in reversed(parts) if p not in (
-                    "trials", "job", "runs", "results", "agent", "env", os.pardir)), "")
-                row = {"task_id": task_id, "batch": "", "category": "", "format": "",
-                       "model": traj.pop("model"), "run_idx": "1", "pass": grade,
-                       "prompt_preview": "", **traj}
-                m = __import__("re").search(r"/B(\d+)/", dirpath)
-                if m:
-                    bnum = int(m.group(1))
-                    cat = {1: "coding_accuracy", 2: "agentic_terminal",
-                           3: "agentic_terminal", 4: "security",
-                           5: "modernization_refactor"}.get(bnum, "")
-                    fmt = "single_shot" if task_id.startswith(("CSQ-", "python-")) else "agentic_terminal"
-                    row.update(batch=f"B{bnum}", category=cat, format=fmt)
-                rows.append(row)
-                break  # one trajectory per trial dir
-    return rows
-
-
-def dedupe_squash_cross_task(root, rows):
-    # no-op unless we later add per-task dir resolution; keeps rows as-is.
+        if "copilot-cli.jsonl" not in files:
+            continue
+        traj = parse_trajectory(os.path.join(dirpath, "copilot-cli.jsonl"))
+        if traj is None:
+            continue
+        task_id, (batch, cat, fmt) = resolve_task(dirpath, known)
+        grade = parse_grade(find_grade_json(dirpath))
+        rows.append({
+            "task_id": task_id, "batch": batch, "category": cat, "format": fmt,
+            "model": traj.pop("model"), "run_idx": str(run_idx),
+            "pass": "" if grade is None else grade, "prompt_preview": "", **traj,
+        })
     return rows
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("jobs_dir", help="Harbor --jobs-dir output")
-    ap.add_argument("-o", "--out", default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                                        "runs", "results.csv"))
+    ap.add_argument("-o", "--out", default=os.path.join(ROOT, "runs", "results.csv"))
+    ap.add_argument("--run-idx", type=int, default=1,
+                    help="Which pass this jobs-dir is (stamped on every row) — use 1,2,3.. for variance")
     args = ap.parse_args()
     if not os.path.isdir(args.jobs_dir):
         raise SystemExit(f"not a dir: {args.jobs_dir}")
-    rows = walk_jobs_dir(args.jobs_dir)
+    known = load_spec_map()
+    rows = walk_jobs_dir(args.jobs_dir, args.run_idx, known)
     if not rows:
         print(f"[warn] no copilot-cli.jsonl trajectories found under {args.jobs_dir}")
         return 1
     cols = ["task_id", "batch", "category", "format", "model", "run_idx", "pass",
             "elapsed_s", "ttft_s", "input_tokens", "output_tokens", "tokens_per_second",
             "prompt_preview"]
+    # merge append if the output file already exists (multi-pass accumulation)
+    mode = "a" if os.path.exists(args.out) else "w"
+    wrote_header = mode == "w"
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
-    with open(args.out, "w", newline="") as f:
+    with open(args.out, mode, newline="") as f:
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
-        w.writeheader()
+        if wrote_header:
+            w.writeheader()
         w.writerows(rows)
-    print(f"wrote {len(rows)} runs -> {args.out}")
+    print(f"appended {len(rows)} runs (run_idx={args.run_idx}) -> {args.out}")
     return 0
 
 

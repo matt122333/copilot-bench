@@ -48,8 +48,8 @@ def ensure_stock_download(ds_spec):
         return datacache
     os.makedirs(datacache, exist_ok=True)
     print(f"  [harbor] downloading {ds_spec} ...")
-    subprocess.run(["harbor", "dataset", "download", ds_spec],
-                   cwd=datacache, check=True)
+    subprocess.run(["harbor", "dataset", "download", ds_spec,
+                   "-o", datacache], check=True)
     return datacache
 
 

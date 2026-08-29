@@ -39,11 +39,13 @@ def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
     results_file = sys.argv[1]
-    pk = os.environ.get("LANGKFUSE_PK") or os.environ.get("LANGFUSE_PUBLIC_KEY")
-    sk = os.environ.get("LANGKFUSE_SK") or os.environ.get("LANGFUSE_SECRET_KEY")
-    host = os.environ.get("LANGKFUSE_HOST") or os.environ.get("LANGFUSE_HOST", "http://localhost:3000")
+    # Standard Langfuse SDK env var names (see https://langfuse.com/docs/sdk/python/low-level-sdk)
+    pk = os.environ.get("LANGFUSE_PUBLIC_KEY", "").strip()
+    sk = os.environ.get("LANGFUSE_SECRET_KEY", "").strip()
+    host = os.environ.get("LANGFUSE_HOST", "http://localhost:3000")
     if not (pk and sk):
-        print("[skip] LANGKFUSE_PK/LANGKFUSE_SK not set — no telemetry sent.", file=sys.stderr)
+        print("[skip] LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY not set — no telemetry sent.",
+              file=sys.stderr)
         return 0
 
     from langfuse import Langfuse

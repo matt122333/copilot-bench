@@ -33,7 +33,7 @@ python3 harness/benchn.py --batch 4 --model opus-5 --effort medium --n-concurren
 # 3) parse Harbor's job output into results.csv (the audit CSV)
 python3 tools/parse_harbor_results.py runs/job4 -o runs/results.csv
 # 4) ingest telemetry -> Langfuse + generate the audit report
-LANGFUSE_PK=… LANGFUSE_SK=… LANGKFUSE_HOST=http://localhost:3000 \
+LANGFUSE_PUBLIC_KEY=… LANGFUSE_SECRET_KEY=… LANGFUSE_HOST=http://localhost:3000 \
     python3 langfuse/ingest.py runs/results.csv
 python3 report/generate.py runs/results.csv
 ```
