@@ -1,0 +1,25 @@
+# ---- generated materialized datasets ----
+batches/B*/tasks/
+.harbor_datasets/
+
+# ---- downloaded source datasets (pulled on clone via build_datasets.py) ----
+terminal-bench/
+humanevalfix/
+binary-audit/
+crustbench/
+*.tgz
+
+# ---- run artifacts / secrets / telemetry ----
+runs/
+raw/
+*.env
+.env
+*.pem
+
+# ---- python ----
+__pycache__/
+*.pyc
+.venv/
+
+# ---- local langfuse infra (docker volumes live out-of-tree) ----
+langfuse/*.data

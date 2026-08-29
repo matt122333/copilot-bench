@@ -1,0 +1,46 @@
+version: "3.9"
+# Self-hosted Langfuse for Copilot-Bench audit telemetry.
+# Data stays local (regulated-friendly). UI: http://localhost:3000
+services:
+  langfuse-db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse
+      POSTGRES_DB: langfuse
+    volumes:
+      - lf-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  langfuse:
+    image: langfuse/langfuse:2
+    restart: unless-stopped
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: copilot-bench-local-audit-secret
+      SALT: copilot-bench-local-audit-salt
+      ENCRYPTION_KEY: 
+      # Sign-in: username/password below
+      AUTH_GOOGLE_ENABLED: "false"
+      LANGCHAIN_TRACING_V2: "false"
+      # Telemetry off for a fully-local audit instance
+      TELEMETRY_ENABLED: "false"
+      # Set a bootstrap admin user/pass (override at first deploy)
+      INITIAL_USER_EMAIL: admin@copilotbench.local
+      INITIAL_USER_PASSWORD: ChangeMe_Admin1
+      INITIAL_ORG_NAME: Copilot-Bench
+      INITIAL_PROJECT_NAME: benchmark
+
+volumes:
+  lf-db-data:

@@ -1,0 +1,35 @@
+# Model price sheet — filled from provider pricing at freeze time.
+# used by langfuse/ingest.py to compute cost-per-task and cost/token.
+# NOTE: update $/1M tokens here (blank = unknown; report will mark them N/A).
+# Fields: per-1M-tokens USD, input || output. reasoning counted as output for proxied COT.
+models:
+  grok-4.6:
+    display: "Grok 4.6"
+    kind: candidate
+    price_in_per_1m: null      # e.g. 2.00
+    price_out_per_1m: null
+    provider: xai
+  opus-5:
+    display: "Opus 5"
+    kind: candidate
+    price_in_per_1m: null
+    price_out_per_1m: null
+    provider: anthropic
+  msai-flash:
+    display: "MsAI Flash"
+    kind: candidate
+    price_in_per_1m: null
+    price_out_per_1m: null
+    provider: microsoft
+  gemini-3.7-flash:
+    display: "Gemini 3.7 Flash"
+    kind: candidate
+    price_in_per_1m: null
+    price_out_per_1m: null
+    provider: google
+  opus-4.8:
+    display: "Opus 4.8 (BASELINE)"
+    kind: baseline
+    price_in_per_1m: null
+    price_out_per_1m: null
+    provider: anthropic

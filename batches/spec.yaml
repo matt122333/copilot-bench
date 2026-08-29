@@ -1,0 +1,104 @@
+# Copilot-Bench batch definitions.
+# loader: tools/build_datasets.py  |  runner: harness/benchn.py
+# Stock tasks reference Harbor datasets by <dataset>@<version> + task-id and are
+# materialized on clone via `harbor dataset download` (out-of-the-box, no authoring).
+
+meta:
+  models:
+    - id: grok-4.6
+      label: "Grok 4.6"
+      kind: candidate
+    - id: opus-5
+      label: "Opus 5"
+      kind: candidate
+    - id: msai-flash
+      label: "MsAI Flash"
+      kind: candidate
+    - id: gemini-3.7-flash
+      label: "Gemini 3.7 Flash"
+      kind: candidate
+    - id: opus-4.8
+      label: "Opus 4.8 (BASELINE)"
+      kind: baseline
+  default_reasoning_effort: medium
+
+# pinned stock sources (out-of-the-box Harbor datasets)
+sources:
+  terminal-bench: terminal-bench/terminal-bench@latest
+  binary-audit:   binary-audit@1.0
+  crustbench:     crustbench@1.0
+
+batches:
+  - id: 1
+    name: "B1 · Single-Shot Coding Accuracy"
+    coverage: "Flash-friendly single-turn coding: implement/fix pure functions, deterministic
+               hidden-test grader. Catches the flash-vs-opus Q&A gap. Includes ~30% novel control
+               tasks (pollution check)."
+    tasks:
+      - {src: custom, id: CSQ-01_get_norm}
+      - {src: custom, id: CSQ-02_valid_braces}
+      - {src: custom, id: CSQ-03_deep_merge}
+      - {src: custom, id: CSQ-04_to_snake_case}
+      - {src: custom, id: CSQ-05_str_compress}
+      - {src: custom, id: CSQ-06_is_palindrome_perm}
+      - {src: custom, id: CSQ-07_top_k_frequent}
+      - {src: custom, id: CSQ-08_matrix_rotate}
+      - {src: custom, id: CSQ-09_semver_compare}
+      - {src: custom, id: CSQ-10_is_anagram}
+      - {src: custom, id: CSQ-11_find_dupes}
+      - {src: custom, id: CSQ-12_lru_cache}
+
+  - id: 2
+    name: "B2 · Agentic Terminal A (software/data)"
+    coverage: "Long-horizon terminal workflows: multi-file bug hunts, DB/queue/eventing cutover,
+               layout/perf regressions. Tests planning, tool-calling loops, end-state verification."
+    tasks:
+      - {src: terminal-bench, id: mvcc-lsm-compaction}
+      - {src: terminal-bench, id: payments-pipeline-fix}
+      - {src: terminal-bench, id: live-database-cutover}
+      - {src: terminal-bench, id: react-lead-form}
+      - {src: terminal-bench, id: session-window-debug}
+      - {src: terminal-bench, id: cumulative-layout-shift}
+      - {src: terminal-bench, id: legacy-utility-triage}
+      - {src: terminal-bench, id: production-planning}
+
+  - id: 3
+    name: "B3 · Agentic Terminal B (ml/data-eng)"
+    coverage: "ML/infra terminal agents: dedup pipelines, model-serving burst, drift monitors,
+               checkpoint consolidation. Complements B2 with heavier compute-oriented workflows."
+    tasks:
+      - {src: terminal-bench, id: data-anonymization}
+      - {src: terminal-bench, id: distributed-dedup}
+      - {src: terminal-bench, id: vllm-deepseek-streaming}
+      - {src: terminal-bench, id: sglang-qwen-burst}
+      - {src: terminal-bench, id: embedding-drift-monitor}
+      - {src: terminal-bench, id: batched-eval-parity}
+      - {src: terminal-bench, id: mp-checkpoint-consolidation}
+
+  - id: 4
+    name: "B4 · Security"
+    coverage: "Security-specific agentic work: backdoor detection in binaries, crypto scheme review,
+               injection/exploit defense. Verifiers use hashed flag/end-state (deterministic)."
+    tasks:
+      - {src: terminal-bench, id: shadow-relay}
+      - {src: terminal-bench, id: uefi-bootkit}
+      - {src: terminal-bench, id: formal-crypto}
+      - {src: terminal-bench, id: interleaved-vigenere}
+      - {src: terminal-bench, id: html-js-filter}
+      - {src: binary-audit, id: caddy-backdoor-detect}
+      - {src: binary-audit, id: dnsmasq-backdoor-detect}
+      - {src: binary-audit, id: lighttpd-backdoor-detect}
+
+  - id: 5
+    name: "B5 · Modernization / Refactoring"
+    coverage: "Legacy-modern modernization: C->safe-Rust transpilation, build-system ports,
+               VM-style app migration. Verifiers run build + behavioral-equivalence checks."
+    tasks:
+      - {src: crustbench, id: crustbench-2dpartint}
+      - {src: crustbench, id: crustbench-amp}
+      - {src: crustbench, id: crustbench-approxidate}
+      - {src: crustbench, id: crustbench-bigint}
+      - {src: crustbench, id: crustbench-bitset}
+      - {src: crustbench, id: crustbench-btree-map}
+      - {src: terminal-bench, id: vba-userform-port}
+      - {src: terminal-bench, id: vf2-speedup-networkx}
