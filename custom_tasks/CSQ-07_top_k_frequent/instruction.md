@@ -7,12 +7,12 @@ broken by first occurrence order.
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert top_k_frequent([1,1,1,2,2,3], 2) == [1, 2] == True, 'top_k_frequent([1,1,1,2,2,3], 2) == [1, 2]'
-        assert top_k_frequent([1,1,1,2,2,3], 1) == [1] == True, 'top_k_frequent([1,1,1,2,2,3], 1) == [1]'
-        assert top_k_frequent([1], 1) == [1] == True, 'top_k_frequent([1], 1) == [1]'
+        assert (top_k_frequent([1,1,1,2,2,3], 2) == [1, 2]) == True, 'top_k_frequent([1,1,1,2,2,3], 2) == [1, 2]'
+        assert (top_k_frequent([1,1,1,2,2,3], 1) == [1]) == True, 'top_k_frequent([1,1,1,2,2,3], 1) == [1]'
+        assert (top_k_frequent([1], 1) == [1]) == True, 'top_k_frequent([1], 1) == [1]'
 ```
 </details>
 

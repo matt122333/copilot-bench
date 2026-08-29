@@ -6,12 +6,12 @@ Implement `find_dupes(nums: list[int]) -> list[int]` in `/workspace/solution.py`
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert find_dupes([1,2,2,3,3,3]) == [2, 3] == True, 'find_dupes([1,2,2,3,3,3]) == [2, 3]'
-        assert find_dupes([1,2,3]) == [] == True, 'find_dupes([1,2,3]) == []'
-        assert find_dupes([5,5,5,1]) == [5] == True, 'find_dupes([5,5,5,1]) == [5]'
+        assert (find_dupes([1,2,2,3,3,3]) == [2, 3]) == True, 'find_dupes([1,2,2,3,3,3]) == [2, 3]'
+        assert (find_dupes([1,2,3]) == []) == True, 'find_dupes([1,2,3]) == []'
+        assert (find_dupes([5,5,5,1]) == [5]) == True, 'find_dupes([5,5,5,1]) == [5]'
 ```
 </details>
 

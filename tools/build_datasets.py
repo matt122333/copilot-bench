@@ -35,16 +35,22 @@ def stock_source_path(sources, src):
 
 
 def ensure_stock_download(ds_spec):
-    name_ver = ds_spec
-    key = name_ver.replace("/", "__").replace("@", "--")
-    target = os.path.join(STOCK_CACHE, key)
-    if os.path.isdir(target):
-        return target
-    os.makedirs(STOCK_CACHE, exist_ok=True)
-    print(f"  [harbor] downloading {name_ver} ...")
-    subprocess.run(["harbor", "dataset", "download", name_ver],
-                   cwd=STOCK_CACHE, check=True)
-    return target
+    """Download a stock dataset into a per-dataset cache dir and return that dir.
+
+    `harbor dataset download <name>@<ver>` (run in a fresh dir) creates
+    <shortname>/<task>/task.toml; we locate the dataset dir by walking for task.toml.
+    """
+    key = ds_spec.replace("/", "__").replace("@", "--")
+    datacache = os.path.join(STOCK_CACHE, key)
+    # already have it?
+    if any(os.path.exists(os.path.join(r, "task.toml"))
+           for r, _, _ in os.walk(datacache)):
+        return datacache
+    os.makedirs(datacache, exist_ok=True)
+    print(f"  [harbor] downloading {ds_spec} ...")
+    subprocess.run(["harbor", "dataset", "download", ds_spec],
+                   cwd=datacache, check=True)
+    return datacache
 
 
 def find_task_dir(ds_root, task_id):

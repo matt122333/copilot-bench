@@ -41,7 +41,7 @@ def main():
     results_file = sys.argv[1]
     pk = os.environ.get("LANGKFUSE_PK") or os.environ.get("LANGFUSE_PUBLIC_KEY")
     sk = os.environ.get("LANGKFUSE_SK") or os.environ.get("LANGFUSE_SECRET_KEY")
-    host = os.environ.get("LANGKFUSE_HOST", "http://localhost:3000")
+    host = os.environ.get("LANGKFUSE_HOST") or os.environ.get("LANGFUSE_HOST", "http://localhost:3000")
     if not (pk and sk):
         print("[skip] LANGKFUSE_PK/LANGKFUSE_SK not set — no telemetry sent.", file=sys.stderr)
         return 0

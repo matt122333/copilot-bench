@@ -7,12 +7,12 @@ Implement `is_anagram(a: str, b: str) -> bool` in `/workspace/solution.py`.
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert is_anagram("anagram", "nagaram") == True, 'is_anagram("anagram", "nagaram")'
-        assert is_anagram("rat", "car") == False, 'is_anagram("rat", "car")'
-        assert is_anagram("Hello", "ohell") == True, 'is_anagram("Hello", "ohell")'
+        assert (is_anagram("anagram", "nagaram")) == True, 'is_anagram("anagram", "nagaram")'
+        assert (is_anagram("rat", "car")) == False, 'is_anagram("rat", "car")'
+        assert (is_anagram("Hello", "ohell")) == True, 'is_anagram("Hello", "ohell")'
 ```
 </details>
 

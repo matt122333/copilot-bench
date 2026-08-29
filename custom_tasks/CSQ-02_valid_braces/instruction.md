@@ -7,15 +7,15 @@ closed by a matching bracket of the same type, in correct nesting order.
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert is_valid_brackets("()[]{}") == True, 'is_valid_brackets("()[]{}")'
-        assert is_valid_brackets("([{}])") == True, 'is_valid_brackets("([{}])")'
-        assert is_valid_brackets("(]") == False, 'is_valid_brackets("(]")'
-        assert is_valid_brackets("([)]") == False, 'is_valid_brackets("([)]")'
-        assert is_valid_brackets("") == True, 'is_valid_brackets("")'
-        assert is_valid_brackets("{{{{") == False, 'is_valid_brackets("{{{{")'
+        assert (is_valid_brackets("()[]{}")) == True, 'is_valid_brackets("()[]{}")'
+        assert (is_valid_brackets("([{}])")) == True, 'is_valid_brackets("([{}])")'
+        assert (is_valid_brackets("(]")) == False, 'is_valid_brackets("(]")'
+        assert (is_valid_brackets("([)]")) == False, 'is_valid_brackets("([)]")'
+        assert (is_valid_brackets("")) == True, 'is_valid_brackets("")'
+        assert (is_valid_brackets("{{{{")) == False, 'is_valid_brackets("{{{{")'
 ```
 </details>
 

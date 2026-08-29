@@ -8,11 +8,11 @@ key when over capacity. Return the list of get results in order.
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert lru(2, [("put",1,1),("put",2,2),("get",1),("put",3,3),("get",2),("get",3)]) == [1, -1, 3] == True, 'lru(2, [("put",1,1),("put",2,2),("get",1),("put",3,3),("get",2),("get",3)]) == [1, -1, 3]'
-        assert lru(1, [("put",1,1),("put",2,2),("get",1),("get",2)]) == [-1, 2] == True, 'lru(1, [("put",1,1),("put",2,2),("get",1),("get",2)]) == [-1, 2]'
+        assert (lru(2, [("put",1,1),("put",2,2),("get",1),("put",3,3),("get",2),("get",3)]) == [1, -1, 3]) == True, 'lru(2, [("put",1,1),("put",2,2),("get",1),("put",3,3),("get",2),("get",3)]) == [1, -1, 3]'
+        assert (lru(1, [("put",1,1),("put",2,2),("get",1),("get",2)]) == [-1, 2]) == True, 'lru(1, [("put",1,1),("put",2,2),("get",1),("get",2)]) == [-1, 2]'
 ```
 </details>
 

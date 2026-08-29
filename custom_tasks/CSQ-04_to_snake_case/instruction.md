@@ -8,13 +8,13 @@ Implement `to_snake_case(s: str) -> str` in `/workspace/solution.py`.
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert to_snake_case("HelloWorld") == "hello_world", 'to_snake_case("HelloWorld")'
-        assert to_snake_case("fooBar") == "foo_bar", 'to_snake_case("fooBar")'
-        assert to_snake_case("a-b") == "a_b", 'to_snake_case("a-b")'
-        assert to_snake_case("X Y") == "x_y", 'to_snake_case("X Y")'
+        assert (to_snake_case("HelloWorld")) == "hello_world", 'to_snake_case("HelloWorld")'
+        assert (to_snake_case("fooBar")) == "foo_bar", 'to_snake_case("fooBar")'
+        assert (to_snake_case("a-b")) == "a_b", 'to_snake_case("a-b")'
+        assert (to_snake_case("X Y")) == "x_y", 'to_snake_case("X Y")'
 ```
 </details>
 

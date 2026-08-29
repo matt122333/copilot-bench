@@ -7,13 +7,13 @@ whitespace, ignoring case). A palindrome-perm has at most one char with odd coun
 
 
 <details>
-<summary>Reference tests (run against your /workspace/solution.py)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
-        assert is_palindrome_perm("Tact Coa") == True, 'is_palindrome_perm("Tact Coa")'
-        assert is_palindrome_perm("abc") == False, 'is_palindrome_perm("abc")'
-        assert is_palindrome_perm("aa") == True, 'is_palindrome_perm("aa")'
-        assert is_palindrome_perm("a") == True, 'is_palindrome_perm("a")'
+        assert (is_palindrome_perm("Tact Coa")) == True, 'is_palindrome_perm("Tact Coa")'
+        assert (is_palindrome_perm("abc")) == False, 'is_palindrome_perm("abc")'
+        assert (is_palindrome_perm("aa")) == True, 'is_palindrome_perm("aa")'
+        assert (is_palindrome_perm("a")) == True, 'is_palindrome_perm("a")'
 ```
 </details>
 

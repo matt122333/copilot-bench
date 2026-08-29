@@ -12,6 +12,7 @@ crustbench/
 # ---- run artifacts / secrets / telemetry ----
 runs/
 raw/
+reports/
 *.env
 .env
 *.pem

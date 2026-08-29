@@ -271,7 +271,7 @@ def lru(capacity, ops):
 }
 
 def oracle_test_asserts(expr, expected_repr):
-    return f"    assert {expr} == {expected_repr}, {expr!r}"
+    return f"    assert ({expr}) == {expected_repr}, {expr!r}"
 
 def build(name, title, spec_md, oracle_src, fn, tests):
     d = os.path.join(ROOT, name)
@@ -282,7 +282,7 @@ def build(name, title, spec_md, oracle_src, fn, tests):
     with open(os.path.join(d, "task.toml"), "w") as f:
         f.write(TASK_TOML)
     with open(os.path.join(d, "instruction.md"), "w") as f:
-        f.write(f"# {title}\n\n{spec_md}\n\n<details>\n<summary>Reference tests (run against your /workspace/solution.py)</summary>\n\n```python\n")
+        f.write(f"# {title}\n\n{spec_md}\n\n<details>\n<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>\n\n```python\n")
         for i, (expr, exp) in enumerate(tests):
             val = f"    {oracle_test_asserts(expr, exp)}"
             f.write(val + "\n")

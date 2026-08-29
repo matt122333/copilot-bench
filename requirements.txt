@@ -1,0 +1,6 @@
+# Python deps for harness/ingest/report tooling.
+# Harbor itself is installed separately:  uv tool install 'harbor[modal]'   (>=0.22.0)
+# NOTE: Harbor >=0.22.0 ships the `copilot-cli` agent; older versions won't resolve `-a copilot-cli`.
+pyyaml>=6.0          # batches/spec + price sheet parsing (build_datasets, benchn)
+langfuse>=2.0        # langfuse/ingest.py (telemetry -> Langfuse)
+numpy>=1.24          # (optional) if you upgrade report aggregation to CI stats

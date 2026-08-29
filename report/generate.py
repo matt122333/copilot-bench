@@ -65,7 +65,7 @@ def stats_for(mod_runs):
         return m, s, len(xs)
 
     mean_el, sd_el, _ = agg2(el)
-    mean_tt, _, _ = agg2(tt) if False else (statistics.mean([t for t in tt if t is not None]) if [t for t in tt if t is not None] else None, None, None)
+    mean_tt, _, _ = agg2(tt)
     mean_tok, sd_tok, _ = agg2(toks)
     mean_cost, sd_cost, _ = agg2(cost)
     return {

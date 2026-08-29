@@ -9,7 +9,7 @@ Usage:
   python3 harness/benchn.py --batch 4 --model grok-4.6 --effort medium
 """
 from __future__ import annotations
-import argparse, os, shutil, subprocess, sys, textwrap
+import argparse, os, subprocess, sys, textwrap
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -65,14 +65,7 @@ def resolve_model(spec, display):
     return display.split()[0]
 
 
-def bad_batch_input(spec, custom):
-    if custom:
-        print("  -> custom dataset dir:", custom)
-        return custom
-    return None
-
-
-def run(batch_id, models, effort, nconcurrent, extra_args, custom_dir=None):
+def run(batch_id, models, effort, nconcurrent, extra_args, custom_dir=None, jobs_dir=None):
     # 1) materialize the batch dataset
     if not custom_dir:
         print(f"\n[build] materializing B{batch_id} ...")
@@ -84,8 +77,12 @@ def run(batch_id, models, effort, nconcurrent, extra_args, custom_dir=None):
 
     print(f"[run] dataset: {ds}  | effort={effort}  | n-concurrent={nconcurrent}")
     for model in models:
+        # reasoning effort is a Harbor agent kwarg, not a generic --effort flag:
         cmd = HARBOR_ARGS + ["-d", ds, "-a", "copilot-cli", "-m", model,
-                             "--effort", effort, "--n-concurrent", str(nconcurrent)]
+                             "--ak", f"reasoning_effort={effort}",
+                             "--n-concurrent", str(nconcurrent)]
+        if jobs_dir:
+            cmd += ["--jobs-dir", jobs_dir]
         if extra_args:
             cmd += extra_args.split()
         joined = " ".join(cmd)
@@ -101,6 +98,8 @@ def main():
     ap.add_argument("--effort", default=None, choices=["low", "medium", "high", "xhigh", "max"])
     ap.add_argument("--n-concurrent", type=int, default=8)
     ap.add_argument("--custom-dir", help="path to a custom dataset dir (skip batch build)")
+    ap.add_argument("--jobs-dir", default=None,
+                    help="directory Harbor writes job results to (feed to parse_harbor_results.py)")
     ap.add_argument("--extra", default="", help="extra args passed to harbor run")
     args = ap.parse_args()
 
@@ -132,7 +131,8 @@ def main():
 
     nconc = args.n_concurrent
 
-    run(batch_id, models, effort, nconc, args.extra, custom_dir=args.custom_dir)
+    run(batch_id, models, effort, nconc, args.extra,
+        custom_dir=args.custom_dir, jobs_dir=args.jobs_dir)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ test file (below) passes.
 You may edit only `/workspace/solution.py`. Do not modify the test file.
 
 <details>
-<summary>Reference test file (this is what will be run against your solution)</summary>
+<summary>Representative test cases — the real (hidden) grader is similar, with additional edge cases</summary>
 
 ```python
 from math import isclose
