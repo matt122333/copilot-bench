@@ -1,0 +1,6 @@
+build:
+	python3 -m py_compile app.py
+test:
+	python3 -c 'assert 1+1==2'
+lint:
+	python3 -c 'import ast; ast.parse(open("app.py").read())'

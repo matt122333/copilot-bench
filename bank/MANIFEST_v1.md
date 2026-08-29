@@ -6,36 +6,35 @@
 - **Config (controlled):** reasoning effort = medium, 1 pass, web=off, MCP=none,
   per-task timeouts, all tools on. **Only `--model` varies.**
 
+## Composition (50 = 25 custom + 25 stock)
+- **25 custom** (`custom_tasks/`): private/novel — the contamination-control set + the
+  single-shot / agentic / security / modernization coverage that public sets lack.
+- **25 stock** (public, pinned Harbor datasets): terminal-bench@latest, binary-audit@1.0,
+  crustbench@1.0, humanevalfix@1.0 — graded by their published verifiers.
+
 ## Governance rules
 1. The runner consumes **only** tasks listed here — no ad-hoc prompts at runtime.
-2. **Provenance:** `custom` = private/novel (contamination control, never published);
-   stock entries = pinned **public** Harbor datasets, graded by their published verifiers.
-3. **Deterministic grading:** Harbor oracle + verifier in a separate container; hashed
-   answers; `environment_mode=separate`.
+2. Every task carries **provenance**: `custom` (private, never published) or a pinned **public** dataset.
+3. **Deterministic grading:** Harbor oracle + verifier in a separate container; hashed answers;
+   `environment_mode=separate`. Private tasks verified oracle-green before commit.
 4. Source of truth: `batches/spec.yaml`. Changes require a manifest bump + re-approval.
 
-## Task set (43)
+## Task set (50) — see batches/spec.yaml for IDs
 
-### B1 · Single-shot coding accuracy — 12 (custom)
-`custom_tasks/CSQ-01_get_norm, CSQ-02_valid_braces, CSQ-03_deep_merge, CSQ-04_to_snake_case,
-CSQ-05_str_compress, CSQ-06_is_palindrome_perm, CSQ-07_top_k_frequent, CSQ-08_matrix_rotate,
-CSQ-09_semver_compare, CSQ-10_is_anagram, CSQ-11_find_dupes, CSQ-12_lru_cache`
+| Batch | Category | custom | stock | total |
+|---|---|---|---|---|
+| B1 | Single-shot coding accuracy | 12 (CSQ-01..12) | 3 (humanevalfix) | 15 |
+| B2 | Agentic terminal A (software/data) | 2 (CAT-01..02) | 5 (terminal-bench) | 7 |
+| B3 | Agentic terminal B (ML/data-eng) | 1 (CAT-03) | 4 (terminal-bench) | 5 |
+| B4 | Security | 4 (CSE-01..04) | 5 (TB + binary-audit) | 9 |
+| B5 | Modernization / refactoring | 6 (CMO-01..06) | 8 (crustbench + TB) | 14 |
+| **total** | | **25** | **25** | **50** |
 
-### B2 · Agentic terminal A (software/data) — 8 (terminal-bench@latest)
-mvcc-lsm-compaction · payments-pipeline-fix · live-database-cutover · react-lead-form ·
-session-window-debug · cumulative-layout-shift · legacy-utility-triage · production-planning
-
-### B3 · Agentic terminal B (ML/data-eng) — 7 (terminal-bench@latest)
-data-anonymization · distributed-dedup · vllm-deepseek-streaming · sglang-qwen-burst ·
-embedding-drift-monitor · batched-eval-parity · mp-checkpoint-consolidation
-
-### B4 · Security — 8 (terminal-bench@latest + binary-audit@1.0)
-shadow-relay · uefi-bootkit · formal-crypto · interleaved-vigenere · html-js-filter ·
-( binary-audit ) caddy-backdoor-detect · dnsmasq-backdoor-detect · lighttpd-backdoor-detect
-
-### B5 · Modernization / refactoring — 8 (crustbench@1.0 + terminal-bench@latest)
-( crustbench ) crustbench-2dpartint · crustbench-amp · crustbench-approxidate · crustbench-bigint ·
-crustbench-bitset · crustbench-btree-map · ( terminal-bench ) vba-userform-port · vf2-speedup-networkx
+Private task detail: CSQ-01..12 single-shot (get_norm, valid_braces, deep_merge, to_snake_case,
+str_compress, is_palindrome_perm, top_k_frequent, matrix_rotate, semver_compare, is_anagram,
+find_dupes, lru_cache) · CAT-01..03 agentic (rename-symbol, fix-import, reduce-noise) ·
+CSE-01..04 security (path-traversal, SQLi, JWT, TLS-harden) · CMO-01..06 modernization
+(py2-to-py3, argparse→subparsers, sync→asyncio, Makefile→just, React class→hooks, C→Rust).
 
 ## Metrics
 task-success (pass%) · TTFT · tokens/sec · throughput · cost/task (needs price sheet) ·

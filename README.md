@@ -44,13 +44,13 @@ API key for model routing.
 
 | Batch | Coverage | Tasks |
 |---|---|---|
-| B1 | **Single-shot coding accuracy** — flash-friendly Q&A/single-turn, hidden-test gradings. Includes ~12 novel control tasks (contamination check). | 12 (custom) |
-| B2 | **Agentic terminal A (software/data)** — multi-file bug hunts, DB/queue cutover, perf regressions. | 8 (terminal-bench) |
-| B3 | **Agentic terminal B (ML/data-eng)** — dedup, model-serving, drift monitors. | 7 (terminal-bench) |
-| B4 | **Security** — backdoor detection in binaries, crypto review, exploit defense. Hashed determinism. | 8 (terminal-bench + binary-audit) |
-| B5 | **Modernization / refactoring** — C→Rust, build-system ports, VBA→modern. | 8 (crustbench + terminal-bench) |
+| B1 | **Single-shot coding accuracy** — flash-friendly single-turn, hidden-test grading. ~12 novel control tasks (contamination check) **+ 3 public** humanevalfix. | 15 |
+| B2 | **Agentic terminal A (software/data)** — multi-file bug hunts, DB/queue cutover, perf regressions. | 7 |
+| B3 | **Agentic terminal B (ML/data-eng / cleanup)** — dedup, utility triage, output cleanup. | 5 |
+| B4 | **Security** — path-traversal, SQLi, JWT, TLS hardening + binary backdoor/crypto review. Hashed determinism. | 9 |
+| B5 | **Modernization / refactoring** — C→Rust, build-system ports, py2→py3, async, React hooks. | 14 |
 
-**Total = 43 tasks** (12 custom + 31 stock, all deterministic-graded).
+**Total = 50 tasks = 25 custom (private, contamination-control) + 25 stock (public, out-of-box).**
 
 ```bash
 python3 harness/benchn.py            # pick batch 1–5, or 'custom' dataset dir
@@ -75,7 +75,7 @@ python3 tools/build_datasets.py -l   # list batches + counts
 ```
 batches/spec.yaml          # batch + model definitions, coverage text
 batches/B1..B5/            # materialized datasets (generated, gitignored)
-custom_tasks/CSQ-*         # 12 novel single-shot tasks (task.toml/instruction/solution/tests)
+custom_tasks/                 # 25 bespoke tasks (CSQ/CAT/CSE/CMO)  [private/control]
 tools/build_datasets.py    # assemble a batch dir from spec (pull stock + copy custom)
 harness/benchn.py          # interactive runner (batch/model/effort → harbor run)
 langfuse/                  # docker-compose (self-hosted) + ingest adapter

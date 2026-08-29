@@ -1,7 +1,8 @@
 # Copilot-Bench batch definitions.
 # loader: tools/build_datasets.py  |  runner: harness/benchn.py
+# 50 tasks = 25 custom (private, contamination-control) + 25 stock (public, out-of-box).
 # Stock tasks reference Harbor datasets by <dataset>@<version> + task-id and are
-# materialized on clone via `harbor dataset download` (out-of-the-box, no authoring).
+# materialized on clone via `harbor dataset download` (no authoring).
 
 meta:
   models:
@@ -27,13 +28,14 @@ sources:
   terminal-bench: terminal-bench/terminal-bench@latest
   binary-audit:   binary-audit@1.0
   crustbench:     crustbench@1.0
+  humanevalfix:   humanevalfix@1.0
 
 batches:
   - id: 1
     name: "B1 · Single-Shot Coding Accuracy"
     coverage: "Flash-friendly single-turn coding: implement/fix pure functions, deterministic
-               hidden-test grader. Catches the flash-vs-opus Q&A gap. Includes ~30% novel control
-               tasks (pollution check)."
+               hidden-test grader. 12 private (novel, contamination-control) + 3 public
+               (humanevalfix) — catches the flash-vs-opus Q&A gap."
     tasks:
       - {src: custom, id: CSQ-01_get_norm}
       - {src: custom, id: CSQ-02_valid_braces}
@@ -47,53 +49,60 @@ batches:
       - {src: custom, id: CSQ-10_is_anagram}
       - {src: custom, id: CSQ-11_find_dupes}
       - {src: custom, id: CSQ-12_lru_cache}
+      - {src: humanevalfix, id: python-0}
+      - {src: humanevalfix, id: python-1}
+      - {src: humanevalfix, id: python-10}
 
   - id: 2
     name: "B2 · Agentic Terminal A (software/data)"
-    coverage: "Long-horizon terminal workflows: multi-file bug hunts, DB/queue/eventing cutover,
-               layout/perf regressions. Tests planning, tool-calling loops, end-state verification."
+    coverage: "Long-horizon terminal workflows: multi-file bug hunts, DB/queue cutover,
+               perf regressions. Mix of 2 private + 5 public terminal-bench tasks."
     tasks:
+      - {src: custom, id: CAT-01_rename_symbol_cross_file}
+      - {src: custom, id: CAT-02_fix_broken_import}
       - {src: terminal-bench, id: mvcc-lsm-compaction}
       - {src: terminal-bench, id: payments-pipeline-fix}
       - {src: terminal-bench, id: live-database-cutover}
       - {src: terminal-bench, id: react-lead-form}
       - {src: terminal-bench, id: session-window-debug}
-      - {src: terminal-bench, id: cumulative-layout-shift}
-      - {src: terminal-bench, id: legacy-utility-triage}
-      - {src: terminal-bench, id: production-planning}
 
   - id: 3
     name: "B3 · Agentic Terminal B (ml/data-eng)"
-    coverage: "ML/infra terminal agents: dedup pipelines, model-serving burst, drift monitors,
-               checkpoint consolidation. Complements B2 with heavier compute-oriented workflows."
+    coverage: "ML/infra terminal agents + output-cleanup refactor. 1 private + 4 public."
     tasks:
+      - {src: custom, id: CAT-03_reduce_pipeline_noise}
       - {src: terminal-bench, id: data-anonymization}
       - {src: terminal-bench, id: distributed-dedup}
-      - {src: terminal-bench, id: vllm-deepseek-streaming}
-      - {src: terminal-bench, id: sglang-qwen-burst}
-      - {src: terminal-bench, id: embedding-drift-monitor}
-      - {src: terminal-bench, id: batched-eval-parity}
-      - {src: terminal-bench, id: mp-checkpoint-consolidation}
+      - {src: terminal-bench, id: legacy-utility-triage}
+      - {src: terminal-bench, id: production-planning}
 
   - id: 4
     name: "B4 · Security"
-    coverage: "Security-specific agentic work: backdoor detection in binaries, crypto scheme review,
-               injection/exploit defense. Verifiers use hashed flag/end-state (deterministic)."
+    coverage: "Security-specific agentic work: path-traversal, SQLi, JWT, TLS hardening
+               (4 private) + binary backdoor / crypto review (4 public). Hashed/flags deterministic."
     tasks:
+      - {src: custom, id: CSE-01_path_traversal}
+      - {src: custom, id: CSE-02_sql_injection}
+      - {src: custom, id: CSE-03_insecure_jwt}
+      - {src: custom, id: CSE-04_harden_tls_config}
       - {src: terminal-bench, id: shadow-relay}
       - {src: terminal-bench, id: uefi-bootkit}
       - {src: terminal-bench, id: formal-crypto}
       - {src: terminal-bench, id: interleaved-vigenere}
-      - {src: terminal-bench, id: html-js-filter}
       - {src: binary-audit, id: caddy-backdoor-detect}
-      - {src: binary-audit, id: dnsmasq-backdoor-detect}
-      - {src: binary-audit, id: lighttpd-backdoor-detect}
 
   - id: 5
     name: "B5 · Modernization / Refactoring"
-    coverage: "Legacy-modern modernization: C->safe-Rust transpilation, build-system ports,
-               VM-style app migration. Verifiers run build + behavioral-equivalence checks."
+    coverage: "Legacy-modern modernization: C->safe-Rust, build-system ports (6 public
+               crustbench/TB) + py2-py3, CLI refactor, async, Makefile->just, React hooks
+               (6 private). Build + behavioral-equivalence verifiers."
     tasks:
+      - {src: custom, id: CMO-01_py2_to_py3}
+      - {src: custom, id: CMO-02_argparse_to_subparsers}
+      - {src: custom, id: CMO-03_sync_to_asyncio}
+      - {src: custom, id: CMO-04_makefile_to_just}
+      - {src: custom, id: CMO-05_react_class_to_hooks}
+      - {src: custom, id: CMO-06_c_to_rust_mini}
       - {src: crustbench, id: crustbench-2dpartint}
       - {src: crustbench, id: crustbench-amp}
       - {src: crustbench, id: crustbench-approxidate}

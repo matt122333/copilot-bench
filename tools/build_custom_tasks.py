@@ -297,17 +297,27 @@ def build(name, title, spec_md, oracle_src, fn, tests):
     with open(os.path.join(d, "solution", "solution.py"), "w") as f:
         f.write(oracle_src + "\n")
     # grader
-    with open(os.path.join(d, "tests", f"test_{name.lower()}.py"), "w") as f:
+    grader_name = f"test_{name.lower()}.py"
+    with open(os.path.join(d, "tests", grader_name), "w") as f:
         f.write("import os\n")
+        f.write("# SOL_PATH overridable for local testing; Harbor mounts solution at /workspace\n")
+        f.write("SOL = os.environ.get('SOL_PATH', '/workspace/solution.py')\n")
         f.write("def _load():\n")
-        f.write("    ns = {'__file__': '/workspace/solution.py'}\n")
-        f.write("    exec(open('/workspace/solution.py').read(), ns)\n")
+        f.write("    ns = {'__file__': SOL}\n")
+        f.write("    exec(open(SOL).read(), ns)\n")
         f.write("    return ns\n")
         f.write("def test_solution():\n")
         f.write("    ns = _load()\n")
         f.write(f"    {fn} = ns[{fn!r}]\n")
         for expr, exp in tests:
-            f.write(f"    assert {expr} == {exp}, {expr!r}\n")
+            f.write(f"    assert ({expr}) == {exp}, {expr!r}\n")
+        f.write("if __name__ == '__main__':\n")
+        f.write("    test_solution()\n")
+        f.write("    print('ALL TESTS PASSED')\n")
+    # Harbor verifier entrypoint (matches convention: tests/test.sh)
+    with open(os.path.join(d, "tests", "test.sh"), "w") as f:
+        f.write("#!/bin/bash\nset -e\ncd /workspace\nexec python3 /tests/%s\n" % grader_name)
+    os.chmod(os.path.join(d, "tests", "test.sh"), 0o755)
     return (name, fn, oracle_src, tests)
 
 def verify(name, fn, oracle_src, tests):

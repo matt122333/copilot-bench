@@ -1,33 +1,46 @@
-# Custom tasks (contamination-control / single-shot track)
+# Custom tasks (contamination-control + private category coverage)
 
-This directory holds **12 bespoke single-shot coding-accuracy tasks** (CSQ-01…12).
-These are our own, **never published**, so models cannot have memorized them — they
-serve double duty:
+This directory holds **25 bespoke tasks**, our own and **never published**, so models
+cannot have memorized them. They serve two roles:
 
-1. **Single-shot track** — the flash-friendly modality (one prompt → one answer)
-   that Harbor's public datasets don't cover well.
-2. **Contamination control** — comparing each model's public-vs-private pass rate
-   exposes whether it has memorized public benchmarks.
+1. **Private category coverage** the public sets lack (esp. single-shot, plus richer
+   agentic/security/modernization cases).
+2. **Contamination control** — comparing each model's public-vs-private pass rate exposes
+   whether it has memorized public benchmarks.
 
-The agentic / security / modernization categories are intentionally **stock
-(out-of-the-box)** — see `batches/spec.yaml` → terminal-bench, binary-audit, crustbench.
+The 25 stock tasks are **out-of-the-box** public Harbor datasets — see `batches/spec.yaml`.
+
+## Tasks (25)
+
+- **CSQ-01..12 — single-shot coding accuracy** (hidden assert grader, pure Python):
+  get_norm, valid_braces, deep_merge, to_snake_case, str_compress, is_palindrome_perm,
+  top_k_frequent, matrix_rotate, semver_compare, is_anagram, find_dupes, lru_cache.
+- **CAT-01..03 — agentic_terminal**: rename symbol cross-file · fix broken import ·
+  quiet a noisy pipeline.
+- **CSE-01..04 — security**: path-traversal · SQL injection · insecure JWT · TLS hardening.
+- **CMO-01..06 — modernization**: py2→py3 · argparse→subparsers · sync→asyncio ·
+  Makefile→just · React class→hooks · C→Rust mini.
 
 ## Task anatomy (Harbor format)
 
-Each `CSQ-XX_*/` directory:
+Each `NAME/` directory:
 ```
 task.toml            metadata + verifier/agent timeouts + env (environment_mode=separate)
-instruction.md       the EXACT prompt the model receives (spec + hidden reference tests)
-environment/solution.py  stub the model edits at /workspace/solution.py
-solution/solution.py     oracle — proves the task is solvable (verified)
-tests/test_csqXX.py      deterministic grader: loads /workspace/solution.py and asserts
+instruction.md       the EXACT prompt the model receives
+environment/         seeded workdir the model edits (mounted at /workspace)
+solution/            oracle — proves the task is solvable (verified oracle-green)
+tests/test.sh        deterministic grader (runs from /workspace, exits 0/1)
 ```
 
-**Verification:** every oracle passes its own grader (`tools/build_custom_tasks.py`
-verifies all 12). Graders are pure-Python hidden assertions — no external tooling.
+## Verification
+- **CSQ-01..12** + **CAT, CSE, CMO (python-gradable)** verified: every oracle passes its own
+  grader (`tools/build_custom_tasks.py`, `tools/build_agentic_tasks.py`, `/tmp` smoke harness).
+- Build-tool variants **CMO-04 (just), CMO-05 (node), CMO-06 (cargo)** require those toolchains
+  in the eval image; graders written to Harbor convention and executed at run time.
 
 ## Regenerate
-
 ```bash
-python3 tools/build_custom_tasks.py     # rebuilds CSQ-02..12; CSQ-01 is hand-written
+python3 tools/build_custom_tasks.py     # CSQ-02..12 (CSQ-01 hand-written); fixed graders
+python3 tools/build_agentic_tasks.py    # CAT/CSE/CMO (note: generated files were further
+                                        # corrected in-repo; treat committed tasks as canonical)
 ```

@@ -1,0 +1,4 @@
+ssl_verify: true
+min_tls: 1.2
+renegotiation: false
+ciphers: HIGH:!aNULL
